@@ -35,8 +35,6 @@ public class AStarShortestPath {
         
         openSet.add(new Node(s, 0, heuristic.getOrDefault(s, 0), null));
         
-        Map<Integer, Node> cameFrom = new HashMap<>();
-        
         while (!openSet.isEmpty()) {
             Node current = openSet.poll();
             if (current.id == t) {
@@ -53,11 +51,10 @@ public class AStarShortestPath {
                 int neighborId = neighbor[0], weight = neighbor[1];
                 int tentativeGScore = current.g + weight;
                 
-                if (tentativeGScore < gScore.get(neighborId)) {
+                if (tentativeGScore < gScore.getOrDefault(neighborId, Integer.MAX_VALUE)) {
                     gScore.put(neighborId, tentativeGScore);
                     Node nextNode = new Node(neighborId, tentativeGScore, heuristic.getOrDefault(neighborId, 0), current);
                     openSet.add(nextNode);
-                    cameFrom.put(neighborId, current);
                 }
             }
         }
@@ -65,12 +62,21 @@ public class AStarShortestPath {
     }
 
     public static void main(String[] args) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader("path4.txt")); // Change filename as needed
+        BufferedReader br = new BufferedReader(new FileReader("path5.txt"));
         StringTokenizer st = new StringTokenizer(br.readLine());
+        
         int n = Integer.parseInt(st.nextToken());
         int m = Integer.parseInt(st.nextToken());
-        int s = Integer.parseInt(st.nextToken());
-        int t = Integer.parseInt(st.nextToken());
+        int s, t;
+        
+        if (st.hasMoreTokens()) {
+            s = Integer.parseInt(st.nextToken());
+            t = Integer.parseInt(st.nextToken());
+        } else {
+            st = new StringTokenizer(br.readLine());
+            s = Integer.parseInt(st.nextToken());
+            t = Integer.parseInt(st.nextToken());
+        }
         
         Map<Integer, List<int[]>> graph = new HashMap<>();
         Map<Integer, Integer> heuristic = new HashMap<>();
@@ -84,9 +90,15 @@ public class AStarShortestPath {
             graph.computeIfAbsent(v, k -> new ArrayList<>()).add(new int[]{u, w}); // If undirected
         }
         
-        st = new StringTokenizer(br.readLine());
-        for (int i = 1; i <= n; i++) {
-            heuristic.put(i, Integer.parseInt(st.nextToken()));
+        if (br.ready()) {
+            st = new StringTokenizer(br.readLine());
+            for (int i = 1; i <= n; i++) {
+                if (st.hasMoreTokens()) {
+                    heuristic.put(i, Integer.parseInt(st.nextToken()));
+                } else {
+                    heuristic.put(i, 0); // Default to 0 if heuristic is missing
+                }
+            }
         }
         
         List<Integer> path = aStar(n, graph, s, t, heuristic);
